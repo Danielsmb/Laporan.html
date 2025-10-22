@@ -14,6 +14,7 @@
             --text-color: #ffffff;
             --error-color: #ff1744;
             --success-color: #00e676;
+            --warning-color: #ffab00;
             --card-bg: rgba(255, 255, 255, 0.1);
         }
 
@@ -67,15 +68,9 @@
         }
 
         @keyframes pulse {
-            0% {
-                box-shadow: 0 0 20px rgba(255, 23, 68, 0.7);
-            }
-            50% {
-                box-shadow: 0 0 30px rgba(255, 23, 68, 0.9);
-            }
-            100% {
-                box-shadow: 0 0 20px rgba(255, 23, 68, 0.7);
-            }
+            0% { box-shadow: 0 0 20px rgba(255, 23, 68, 0.7); }
+            50% { box-shadow: 0 0 30px rgba(255, 23, 68, 0.9); }
+            100% { box-shadow: 0 0 20px rgba(255, 23, 68, 0.7); }
         }
 
         h1 {
@@ -147,14 +142,22 @@
             box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4);
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 23, 68, 0.6);
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
         }
 
         .btn-container {
             display: flex;
             justify-content: center;
+            gap: 10px;
             margin-top: 20px;
         }
 
@@ -185,20 +188,31 @@
         }
 
         th, td {
-            padding: 15px;
+            padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            vertical-align: top;
         }
 
         th {
             background: rgba(156, 39, 176, 0.3);
             font-weight: 600;
             color: #e1bee7;
+            position: sticky;
+            top: 0;
         }
 
         tr:hover {
             background: rgba(255, 255, 255, 0.05);
         }
+
+        .action-buttons button {
+            padding: 8px 12px;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+        .edit-btn { background: #1976d2; }
+        .delete-btn { background: #d32f2f; }
 
         .notification {
             position: fixed;
@@ -217,13 +231,9 @@
             transform: translateX(0);
         }
 
-        .notification.success {
-            background: var(--success-color);
-        }
-
-        .notification.error {
-            background: var(--error-color);
-        }
+        .notification.success { background: var(--success-color); }
+        .notification.error { background: var(--error-color); }
+        .notification.warning { background: var(--warning-color); }
 
         .refresh-btn {
             position: fixed;
@@ -251,21 +261,11 @@
         }
 
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .form-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .table-container {
-                font-size: 14px;
-            }
-            
-            th, td {
-                padding: 10px;
-            }
+            h1 { font-size: 2rem; }
+            .form-container { grid-template-columns: 1fr; }
+            .table-container { font-size: 14px; }
+            th, td { padding: 10px; }
+            .action-buttons { display: flex; flex-direction: column; }
         }
     </style>
 </head>
@@ -280,8 +280,9 @@
 
         <main>
             <section class="card">
-                <h2 style="margin-bottom: 20px; color: #e1bee7;">Input Laporan Baru</h2>
+                <h2 style="margin-bottom: 20px; color: #e1bee7;" id="formTitle">Input Laporan Baru</h2>
                 <form id="reportForm">
+                    <input type="hidden" id="editIndex" value="-1">
                     <div class="form-container">
                         <div class="form-group">
                             <label for="shift">SHIFT</label>
@@ -292,7 +293,6 @@
                                 <option value="MALAM">MALAM</option>
                             </select>
                         </div>
-                        
                         <div class="form-group">
                             <label for="perihal">PERIHAL</label>
                             <select id="perihal" required>
@@ -325,22 +325,18 @@
                                 <option value="KEPERLUAN SITUS">KEPERLUAN SITUS</option>
                             </select>
                         </div>
-                        
                         <div class="form-group">
                             <label for="laporan">LAPORAN</label>
                             <textarea id="laporan" rows="3" required></textarea>
                         </div>
-                        
                         <div class="form-group">
                             <label for="kendala">KENDALA</label>
                             <input type="text" id="kendala" required>
                         </div>
-                        
                         <div class="form-group">
                             <label for="tanggal">TANGGAL KEJADIAN</label>
                             <input type="date" id="tanggal" required>
                         </div>
-                        
                         <div class="form-group">
                             <label for="info">INFO SELANJUTNYA</label>
                             <select id="info" required>
@@ -352,15 +348,14 @@
                                 <option value="LEADER">LEADER</option>
                             </select>
                         </div>
-                        
                         <div class="form-group">
                             <label for="nama">NAMA</label>
                             <input type="text" id="nama" required>
                         </div>
                     </div>
-                    
                     <div class="btn-container">
-                        <button type="submit">Simpan Laporan</button>
+                        <button type="submit" id="submitBtn">Simpan Laporan</button>
+                        <button type="button" id="cancelBtn" style="display:none;">Batal</button>
                     </div>
                 </form>
             </section>
@@ -383,13 +378,14 @@
                                 <th>TANGGAL KEJADIAN</th>
                                 <th>INFO SELANJUTNYA</th>
                                 <th>NAMA</th>
+                                <th>AKSI</th>
                             </tr>
                         </thead>
                         <tbody id="reportTableBody">
                             <tr>
-                                <td colspan="7" class="empty-state">
-                                    <i class="fas fa-inbox"></i>
-                                    <p>Belum ada data laporan. Silakan input laporan terlebih dahulu atau refresh data dari Google Sheet.</p>
+                                <td colspan="8" class="empty-state">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Sedang memuat data...</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -406,157 +402,215 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // Initialize data
-        let reports = [];
-        const sheetId = '1CQ3ysCAxE1u-gFa0Z1hqaddwcNT3rqMiTC8hiwpcF_0';
-        const apiKey = 'AIzaSyBp6a6n3e1e9f5g6h7j8k9l0m1n2o3p4q5'; // Anda perlu mengganti dengan API key Anda
+        // !!! PENTING: GANTI DENGAN LINK CSV YANG ANDA PUBLIKASIKAN DARI GOOGLE SHEET !!!
+        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEXAMPLE_PASTE_YOUR_CSV_LINK_HERE/pub?output=csv';
 
-        // Load data from localStorage
-        function loadFromLocalStorage() {
-            const storedReports = localStorage.getItem('lineTogelReports');
-            if (storedReports) {
-                reports = JSON.parse(storedReports);
-                renderTable();
-            }
-        }
-
-        // Save data to localStorage
-        function saveToLocalStorage() {
-            localStorage.setItem('lineTogelReports', JSON.stringify(reports));
-        }
-
-        // Fetch data from Google Sheets
-        async function fetchFromGoogleSheets() {
-            try {
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1?key=${apiKey}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.values && data.values.length > 1) {
-                    // Skip header row
-                    const rows = data.values.slice(1);
-                    
-                    // Parse data from Google Sheets
-                    const sheetReports = rows.map(row => ({
-                        shift: row[0] || '',
-                        perihal: row[1] || '',
-                        laporan: row[2] || '',
-                        kendala: row[3] || '',
-                        tanggal: row[4] || '',
-                        info: row[5] || '',
-                        nama: row[6] || ''
-                    }));
-                    
-                    // Merge with existing reports, avoiding duplicates
-                    sheetReports.forEach(sheetReport => {
-                        const exists = reports.some(report => 
-                            report.shift === sheetReport.shift &&
-                            report.perihal === sheetReport.perihal &&
-                            report.laporan === sheetReport.laporan &&
-                            report.tanggal === sheetReport.tanggal &&
-                            report.nama === sheetReport.nama
-                        );
-                        
-                        if (!exists) {
-                            reports.push(sheetReport);
-                        }
-                    });
-                    
-                    saveToLocalStorage();
-                    renderTable();
-                    showNotification('Data berhasil dimuat dari Google Sheet', 'success');
-                } else {
-                    showNotification('Tidak ada data di Google Sheet', 'error');
-                }
-            } catch (error) {
-                console.error('Error fetching data from Google Sheets:', error);
-                showNotification('Gagal mengambil data dari Google Sheet', 'error');
-            }
-        }
+        let allReports = [];
+        let filteredReports = [];
+        const LOCAL_STORAGE_KEY = 'lineTogelLocalReports';
 
         // Show notification
         function showNotification(message, type) {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type} show`;
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+
+        // Load data from localStorage
+        function loadLocalReports() {
+            const storedReports = localStorage.getItem(LOCAL_STORAGE_KEY);
+            return storedReports ? JSON.parse(storedReports) : [];
+        }
+
+        // Save data to localStorage
+        function saveLocalReports(reports) {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(reports));
+        }
+
+        // Fetch and parse CSV data from Google Sheet
+        async function fetchSheetReports() {
+            try {
+                const response = await fetch(SHEET_CSV_URL);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const csvText = await response.text();
+                
+                // Simple CSV parser
+                const rows = csvText.trim().split('\n');
+                const headers = rows[0].split(',').map(h => h.trim());
+                const data = rows.slice(1).map(row => {
+                    const values = row.split(',');
+                    const report = {};
+                    headers.forEach((header, index) => {
+                        // Handle potential commas in quoted fields
+                        let value = values[index] ? values[index].trim() : '';
+                        if (value.startsWith('"') && value.endsWith('"')) {
+                            value = value.slice(1, -1);
+                        }
+                        report[header.toLowerCase().replace(/\s+/g, '_')] = value;
+                    });
+                    report.source = 'sheet'; // Mark as from sheet
+                    return report;
+                });
+                return data;
+            } catch (error) {
+                console.error('Error fetching sheet data:', error);
+                showNotification('Gagal memuat data dari Google Sheet.', 'error');
+                return []; // Return empty array on error
+            }
+        }
+
+        // Merge sheet and local reports
+        async function loadAndMergeReports() {
+            const sheetReports = await fetchSheetReports();
+            const localReports = loadLocalReports();
             
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            // Combine reports, local reports will appear first
+            allReports = [...localReports, ...sheetReports];
+            filteredReports = [...allReports];
+            renderTable();
         }
 
         // Render table
-        function renderTable(filteredReports = null) {
+        function renderTable() {
             const tableBody = document.getElementById('reportTableBody');
-            const dataToRender = filteredReports || reports;
-            
-            if (dataToRender.length === 0) {
-                tableBody.innerHTML = `
+            if (filteredReports.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada data laporan.</p></td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = filteredReports.map((report, index) => {
+                const isFromSheet = report.source === 'sheet';
+                return `
                     <tr>
-                        <td colspan="7" class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>Belum ada data laporan. Silakan input laporan terlebih dahulu atau refresh data dari Google Sheet.</p>
+                        <td>${report.shift || ''}</td>
+                        <td>${report.perihal || ''}</td>
+                        <td>${report.laporan || ''}</td>
+                        <td>${report.kendala || ''}</td>
+                        <td>${report.tanggal_kejadian || report.tanggal || ''}</td>
+                        <td>${report.info_selanjutnya || report.info || ''}</td>
+                        <td>${report.nama || ''}</td>
+                        <td class="action-buttons">
+                            ${isFromSheet ? 
+                                `<button class="edit-btn" disabled title="Data dari Google Sheet tidak dapat diedit."><i class="fas fa-edit"></i> Edit</button>
+                                 <button class="delete-btn" disabled title="Data dari Google Sheet tidak dapat dihapus."><i class="fas fa-trash"></i> Hapus</button>` :
+                                `<button class="edit-btn" onclick="handleEdit(${index})"><i class="fas fa-edit"></i> Edit</button>
+                                 <button class="delete-btn" onclick="handleDelete(${index})"><i class="fas fa-trash"></i> Hapus</button>`
+                            }
                         </td>
                     </tr>
                 `;
-                return;
-            }
-            
-            tableBody.innerHTML = dataToRender.map(report => `
-                <tr>
-                    <td>${report.shift}</td>
-                    <td>${report.perihal}</td>
-                    <td>${report.laporan}</td>
-                    <td>${report.kendala}</td>
-                    <td>${report.tanggal}</td>
-                    <td>${report.info}</td>
-                    <td>${report.nama}</td>
-                </tr>
-            `).join('');
+            }).join('');
         }
 
-        // Handle form submission
+        // Handle form submission for Add/Update
         document.getElementById('reportForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const newReport = {
+            const editIndex = parseInt(document.getElementById('editIndex').value);
+            const formData = {
                 shift: document.getElementById('shift').value,
                 perihal: document.getElementById('perihal').value,
                 laporan: document.getElementById('laporan').value,
                 kendala: document.getElementById('kendala').value,
                 tanggal: document.getElementById('tanggal').value,
                 info: document.getElementById('info').value,
-                nama: document.getElementById('nama').value
+                nama: document.getElementById('nama').value,
+                source: 'local' // Mark as local
             };
-            
-            reports.push(newReport);
-            saveToLocalStorage();
-            renderTable();
-            
-            // Reset form
-            this.reset();
-            
-            showNotification('Laporan berhasil disimpan di riwayat lokal', 'success');
+
+            const localReports = loadLocalReports();
+
+            if (editIndex === -1) { // Add new
+                localReports.push(formData);
+                showNotification('Laporan berhasil disimpan di browser Anda', 'success');
+            } else { // Update existing
+                // Find the actual index in the localReports array
+                const reportToUpdate = allReports[editIndex];
+                const actualLocalIndex = localReports.findIndex(r => JSON.stringify(r) === JSON.stringify(reportToUpdate));
+                if(actualLocalIndex !== -1){
+                    localReports[actualLocalIndex] = formData;
+                    showNotification('Laporan berhasil diperbarui', 'success');
+                }
+            }
+
+            saveLocalReports(localReports);
+            loadAndMergeReports(); // Reload and re-render
+            resetForm();
         });
+
+        // Handle Edit button click
+        function handleEdit(index) {
+            const report = allReports[index];
+            if (report.source === 'sheet') {
+                showNotification('Data dari Google Sheet tidak dapat diedit.', 'warning');
+                return;
+            }
+
+            document.getElementById('editIndex').value = index;
+            document.getElementById('shift').value = report.shift;
+            document.getElementById('perihal').value = report.perihal;
+            document.getElementById('laporan').value = report.laporan;
+            document.getElementById('kendala').value = report.kendala;
+            document.getElementById('tanggal').value = report.tanggal;
+            document.getElementById('info').value = report.info;
+            document.getElementById('nama').value = report.nama;
+
+            document.getElementById('formTitle').textContent = 'Edit Laporan';
+            document.getElementById('submitBtn').textContent = 'Update Laporan';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Handle Delete button click
+        function handleDelete(index) {
+            const report = allReports[index];
+            if (report.source === 'sheet') {
+                showNotification('Data dari Google Sheet tidak dapat dihapus.', 'warning');
+                return;
+            }
+
+            if (confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
+                const localReports = loadLocalReports();
+                // Find the actual index in the localReports array
+                const actualLocalIndex = localReports.findIndex(r => JSON.stringify(r) === JSON.stringify(report));
+                
+                if(actualLocalIndex !== -1){
+                    localReports.splice(actualLocalIndex, 1);
+                    saveLocalReports(localReports);
+                    showNotification('Laporan berhasil dihapus', 'success');
+                    loadAndMergeReports(); // Reload and re-render
+                }
+            }
+        }
+
+        // Handle Cancel button click
+        document.getElementById('cancelBtn').addEventListener('click', resetForm);
+
+        function resetForm() {
+            document.getElementById('reportForm').reset();
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('formTitle').textContent = 'Input Laporan Baru';
+            document.getElementById('submitBtn').textContent = 'Simpan Laporan';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('tanggal').valueAsDate = new Date();
+        }
 
         // Handle search
         document.getElementById('searchBtn').addEventListener('click', function() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
             if (!searchTerm) {
-                renderTable();
-                return;
+                filteredReports = [...allReports];
+            } else {
+                filteredReports = allReports.filter(report => 
+                    (report.nama && report.nama.toLowerCase().includes(searchTerm)) ||
+                    (report.perihal && report.perihal.toLowerCase().includes(searchTerm)) ||
+                    (report.laporan && report.laporan.toLowerCase().includes(searchTerm)) ||
+                    (report.kendala && report.kendala.toLowerCase().includes(searchTerm)) ||
+                    (report.info && report.info.toLowerCase().includes(searchTerm))
+                );
             }
-            
-            const filteredReports = reports.filter(report => 
-                report.nama.toLowerCase().includes(searchTerm) ||
-                report.perihal.toLowerCase().includes(searchTerm) ||
-                report.laporan.toLowerCase().includes(searchTerm) ||
-                report.kendala.toLowerCase().includes(searchTerm) ||
-                report.info.toLowerCase().includes(searchTerm)
-            );
-            
-            renderTable(filteredReports);
+            renderTable();
         });
 
         // Handle search input
@@ -569,31 +623,20 @@
         // Handle refresh button
         document.getElementById('refreshBtn').addEventListener('click', function() {
             this.style.animation = 'spin 1s';
-            fetchFromGoogleSheets();
-            
-            setTimeout(() => {
-                this.style.animation = '';
-            }, 1000);
+            loadAndMergeReports();
+            setTimeout(() => this.style.animation = '', 1000);
         });
 
         // Add spin animation
         const style = document.createElement('style');
-        style.textContent = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        `;
+        style.textContent = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
         document.head.appendChild(style);
 
-        // Set today's date as default
-        document.getElementById('tanggal').valueAsDate = new Date();
-
         // Initialize the app
-        loadFromLocalStorage();
-        
-        // Fetch data from Google Sheets on page load
-        fetchFromGoogleSheets();
+        document.addEventListener('DOMContentLoaded', function() {
+            resetForm();
+            loadAndMergeReports();
+        });
     </script>
 </body>
 </html>
