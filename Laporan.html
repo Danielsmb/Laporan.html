@@ -1,642 +1,815 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAPORAN HARIAN KAPTEN LINE TOGEL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #4a148c;
-            --secondary-color: #6a1b9a;
-            --accent-color: #9c27b0;
-            --text-color: #ffffff;
-            --error-color: #ff1744;
-            --success-color: #00e676;
-            --warning-color: #ffab00;
-            --card-bg: rgba(255, 255, 255, 0.1);
-        }
+import tkinter as tk
+from tkinter import ttk, scrolledtext, messagebox
+import requests
+import json
+import time
+import math
+from datetime import datetime
+import threading
+import webbrowser
+from urllib.parse import quote
+import re
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #1a0033 0%, #4a148c 100%);
-            color: var(--text-color);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(45deg, #ff1744, #ff6e40);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Bebas Neue', cursive;
-            font-size: 20px;
-            font-weight: bold;
-            color: white;
-            margin-right: 20px;
-            box-shadow: 0 0 20px rgba(255, 23, 68, 0.7);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 20px rgba(255, 23, 68, 0.7); }
-            50% { box-shadow: 0 0 30px rgba(255, 23, 68, 0.9); }
-            100% { box-shadow: 0 0 20px rgba(255, 23, 68, 0.7); }
-        }
-
-        h1 {
-            font-family: 'Bebas Neue', cursive;
-            font-size: 3.5rem;
-            text-shadow: 0 0 10px rgba(255, 23, 68, 0.8);
-            color: #ff1744;
-            letter-spacing: 2px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .form-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #e1bee7;
-        }
-
-        input, select, textarea {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
-        }
-
-        select option {
-            background: var(--primary-color);
-        }
-
-        button {
-            background: linear-gradient(45deg, #ff1744, #ff6e40);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 23, 68, 0.4);
-        }
-
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 23, 68, 0.6);
+class CyberSearchApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("CYBERSEARCH - Sistem Menu Digital")
+        self.root.geometry("1000x700")
+        self.root.configure(bg="#0a0a0f")
+        
+        # 颜色主题
+        self.primary_color = "#00d4ff"
+        self.secondary_color = "#ff00ff"
+        self.accent_color = "#00ff88"
+        self.dark_bg = "#0a0a0f"
+        self.card_bg = "#15151e"
+        self.text_primary = "#e0e0ff"
+        self.text_secondary = "#a0a0c0"
+        
+        # 数据
+        self.sheet_data = []
+        self.filtered_data = []
+        self.current_detail = None
+        self.debug_mode = False
+        
+        # 计算器状态
+        self.calculator_state = {
+            'display_value': '0',
+            'expression': '',
+            'previous_value': None,
+            'operation': None,
+            'waiting_for_operand': False
         }
         
-        button:disabled {
-            background: #555;
-            cursor: not-allowed;
-            transform: none;
-            opacity: 0.6;
-        }
-
-        .btn-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .search-container {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            vertical-align: top;
-        }
-
-        th {
-            background: rgba(156, 39, 176, 0.3);
-            font-weight: 600;
-            color: #e1bee7;
-            position: sticky;
-            top: 0;
-        }
-
-        tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .action-buttons button {
-            padding: 8px 12px;
-            font-size: 14px;
-            margin-right: 5px;
-        }
-        .edit-btn { background: #1976d2; }
-        .delete-btn { background: #d32f2f; }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            transform: translateX(120%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success { background: var(--success-color); }
-        .notification.error { background: var(--error-color); }
-        .notification.warning { background: var(--warning-color); }
-
-        .refresh-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            z-index: 100;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            .form-container { grid-template-columns: 1fr; }
-            .table-container { font-size: 14px; }
-            th, td { padding: 10px; }
-            .action-buttons { display: flex; flex-direction: column; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="logo-container">
-                <div class="logo">Line Togel</div>
-                <h1>LAPORAN HARIAN KAPTEN LINE TOGEL</h1>
-            </div>
-        </header>
-
-        <main>
-            <section class="card">
-                <h2 style="margin-bottom: 20px; color: #e1bee7;" id="formTitle">Input Laporan Baru</h2>
-                <form id="reportForm">
-                    <input type="hidden" id="editIndex" value="-1">
-                    <div class="form-container">
-                        <div class="form-group">
-                            <label for="shift">SHIFT</label>
-                            <select id="shift" required>
-                                <option value="">Pilih Shift</option>
-                                <option value="PAGI">PAGI</option>
-                                <option value="SIANG">SIANG</option>
-                                <option value="MALAM">MALAM</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="perihal">PERIHAL</label>
-                            <select id="perihal" required>
-                                <option value="">Pilih Perihal</option>
-                                <option value="AMAN">AMAN</option>
-                                <option value="DEPO">DEPO</option>
-                                <option value="WD">WD</option>
-                                <option value="QRIS">QRIS</option>
-                                <option value="BANK KAS">BANK KAS</option>
-                                <option value="MISTAKE">MISTAKE</option>
-                                <option value="STAFF">STAFF</option>
-                                <option value="CABUT KAS 1">CABUT KAS 1</option>
-                                <option value="PENAMBAHAN">PENAMBAHAN</option>
-                                <option value="DEPO/WD">DEPO/WD</option>
-                                <option value="FASILITAS">FASILITAS</option>
-                                <option value="FOLLOW UP">FOLLOW UP</option>
-                                <option value="LOCK MINTA BUKTI">LOCK MINTA BUKTI</option>
-                                <option value="PENGEMBALIAN">PENGEMBALIAN</option>
-                                <option value="TO X 3">TO X 3</option>
-                                <option value="UPGRADE">UPGRADE</option>
-                                <option value="DI OFF SEMENTARA">DI OFF SEMENTARA</option>
-                                <option value="UANG MAKAN">UANG MAKAN</option>
-                                <option value="MASA AKTIF">MASA AKTIF</option>
-                                <option value="GANTI SATU TEAM">GANTI SATU TEAM</option>
-                                <option value="OFF ADM">OFF ADM</option>
-                                <option value="BANK OFF SEMENTARA">BANK OFF SEMENTARA</option>
-                                <option value="JUST INFO">JUST INFO</option>
-                                <option value="DI OFF KAN">DI OFF KAN</option>
-                                <option value="PC">PC</option>
-                                <option value="KEPERLUAN SITUS">KEPERLUAN SITUS</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="laporan">LAPORAN</label>
-                            <textarea id="laporan" rows="3" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="kendala">KENDALA</label>
-                            <input type="text" id="kendala" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="tanggal">TANGGAL KEJADIAN</label>
-                            <input type="date" id="tanggal" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="info">INFO SELANJUTNYA</label>
-                            <select id="info" required>
-                                <option value="">Pilih Info</option>
-                                <option value="SUDAH REPORT">SUDAH REPORT</option>
-                                <option value="INFO SELANJUTNYA">INFO SELANJUTNYA</option>
-                                <option value="AMAN">AMAN</option>
-                                <option value="DONE">DONE</option>
-                                <option value="LEADER">LEADER</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="nama">NAMA</label>
-                            <input type="text" id="nama" required>
-                        </div>
-                    </div>
-                    <div class="btn-container">
-                        <button type="submit" id="submitBtn">Simpan Laporan</button>
-                        <button type="button" id="cancelBtn" style="display:none;">Batal</button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="card">
-                <h2 style="margin-bottom: 20px; color: #e1bee7;">Data Laporan</h2>
-                <div class="search-container">
-                    <input type="text" id="searchInput" class="search-input" placeholder="Cari laporan berdasarkan nama, perihal, atau laporan...">
-                    <button id="searchBtn"><i class="fas fa-search"></i> Cari</button>
-                </div>
-                
-                <div class="table-container">
-                    <table id="reportTable">
-                        <thead>
-                            <tr>
-                                <th>SHIFT</th>
-                                <th>PERIHAL</th>
-                                <th>LAPORAN</th>
-                                <th>KENDALA</th>
-                                <th>TANGGAL KEJADIAN</th>
-                                <th>INFO SELANJUTNYA</th>
-                                <th>NAMA</th>
-                                <th>AKSI</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reportTableBody">
-                            <tr>
-                                <td colspan="8" class="empty-state">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    <p>Sedang memuat data...</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <button id="refreshBtn" class="refresh-btn" title="Refresh Data dari Google Sheet">
-        <i class="fas fa-sync-alt"></i>
-    </button>
-
-    <div id="notification" class="notification"></div>
-
-    <script>
-        // !!! PENTING: GANTI DENGAN LINK CSV YANG ANDA PUBLIKASIKAN DARI GOOGLE SHEET !!!
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEXAMPLE_PASTE_YOUR_CSV_LINK_HERE/pub?output=csv';
-
-        let allReports = [];
-        let filteredReports = [];
-        const LOCAL_STORAGE_KEY = 'lineTogelLocalReports';
-
-        // Show notification
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
-            setTimeout(() => notification.classList.remove('show'), 3000);
-        }
-
-        // Load data from localStorage
-        function loadLocalReports() {
-            const storedReports = localStorage.getItem(LOCAL_STORAGE_KEY);
-            return storedReports ? JSON.parse(storedReports) : [];
-        }
-
-        // Save data to localStorage
-        function saveLocalReports(reports) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(reports));
-        }
-
-        // Fetch and parse CSV data from Google Sheet
-        async function fetchSheetReports() {
-            try {
-                const response = await fetch(SHEET_CSV_URL);
-                if (!response.ok) throw new Error('Network response was not ok');
-                const csvText = await response.text();
-                
-                // Simple CSV parser
-                const rows = csvText.trim().split('\n');
-                const headers = rows[0].split(',').map(h => h.trim());
-                const data = rows.slice(1).map(row => {
-                    const values = row.split(',');
-                    const report = {};
-                    headers.forEach((header, index) => {
-                        // Handle potential commas in quoted fields
-                        let value = values[index] ? values[index].trim() : '';
-                        if (value.startsWith('"') && value.endsWith('"')) {
-                            value = value.slice(1, -1);
-                        }
-                        report[header.toLowerCase().replace(/\s+/g, '_')] = value;
-                    });
-                    report.source = 'sheet'; // Mark as from sheet
-                    return report;
-                });
-                return data;
-            } catch (error) {
-                console.error('Error fetching sheet data:', error);
-                showNotification('Gagal memuat data dari Google Sheet.', 'error');
-                return []; // Return empty array on error
-            }
-        }
-
-        // Merge sheet and local reports
-        async function loadAndMergeReports() {
-            const sheetReports = await fetchSheetReports();
-            const localReports = loadLocalReports();
+        # 创建UI
+        self.create_ui()
+        
+        # 启动系统时间更新
+        self.update_system_time()
+        
+        # 获取数据
+        self.fetch_sheet_data()
+    
+    def create_ui(self):
+        # 状态栏
+        self.status_frame = tk.Frame(self.root, bg="#15151e", height=30)
+        self.status_frame.pack(fill=tk.X, padx=5, pady=5)
+        self.status_frame.pack_propagate(False)
+        
+        self.system_time = tk.Label(self.status_frame, text="--:--:--", 
+                                   fg=self.primary_color, bg="#15151e", 
+                                   font=("Courier", 10))
+        self.system_time.pack(side=tk.LEFT, padx=10, pady=5)
+        
+        self.system_status = tk.Label(self.status_frame, text="SISTEM INISIALISASI", 
+                                     fg=self.primary_color, bg="#15151e", 
+                                     font=("Courier", 10))
+        self.system_status.pack(side=tk.RIGHT, padx=10, pady=5)
+        
+        # 主容器
+        self.main_container = tk.Frame(self.root, bg=self.dark_bg)
+        self.main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        # 标题
+        self.header_frame = tk.Frame(self.main_container, bg=self.dark_bg)
+        self.header_frame.pack(fill=tk.X, pady=10)
+        
+        self.title = tk.Label(self.header_frame, text="CYBERSEARCH", 
+                             fg=self.primary_color, bg=self.dark_bg, 
+                             font=("Orbitron, Courier", 24, "bold"))
+        self.title.pack()
+        
+        self.subtitle = tk.Label(self.header_frame, text="// SISTEM MENU DIGITAL //", 
+                                fg=self.text_secondary, bg=self.dark_bg, 
+                                font=("Orbitron, Courier", 10))
+        self.subtitle.pack()
+        
+        # 搜索框
+        self.filter_frame = tk.Frame(self.main_container, bg=self.dark_bg)
+        self.filter_frame.pack(fill=tk.X, pady=10)
+        
+        self.filter_input = tk.Entry(self.filter_frame, bg="#15151e", fg=self.text_primary, 
+                                    insertbackground=self.primary_color, 
+                                    font=("Orbitron, Courier", 12), 
+                                    relief=tk.FLAT, bd=5)
+        self.filter_input.pack(fill=tk.X, padx=50)
+        self.filter_input.insert(0, "FILTER MENU (FLEXIBLE)...")
+        self.filter_input.bind("<FocusIn>", self.clear_placeholder)
+        self.filter_input.bind("<FocusOut>", self.restore_placeholder)
+        self.filter_input.bind("<KeyRelease>", self.debounce_filter)
+        
+        # 加载指示器
+        self.loading_frame = tk.Frame(self.main_container, bg=self.dark_bg)
+        self.loading_frame.pack(fill=tk.BOTH, expand=True)
+        
+        self.loading_label = tk.Label(self.loading_frame, text="MENGAMBIL DATA...", 
+                                    fg=self.text_secondary, bg=self.dark_bg, 
+                                    font=("Orbitron, Courier", 14))
+        self.loading_label.pack(expand=True)
+        
+        # 菜单容器
+        self.menu_container = tk.Frame(self.main_container, bg=self.dark_bg)
+        
+        # 无菜单提示
+        self.no_menu_frame = tk.Frame(self.main_container, bg=self.dark_bg)
+        
+        # 终端输出
+        self.terminal_frame = tk.Frame(self.main_container, bg="#15151e", height=150)
+        self.terminal_frame.pack(fill=tk.X, pady=10)
+        self.terminal_frame.pack_propagate(False)
+        
+        self.terminal = scrolledtext.ScrolledText(self.terminal_frame, bg="#0a0a1f", 
+                                                 fg=self.accent_color, 
+                                                 font=("Courier", 9), 
+                                                 height=8, wrap=tk.WORD)
+        self.terminal.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.add_terminal_line("Initializing CYBERSEARCH Engine v2.0.77")
+        self.add_terminal_line("Neural network connection established")
+        self.add_terminal_line("Ready for menu access...")
+        
+        # 底部
+        self.footer_frame = tk.Frame(self.main_container, bg=self.dark_bg)
+        self.footer_frame.pack(fill=tk.X, pady=5)
+        
+        self.footer_text = tk.Label(self.footer_frame, text="< CYBERSEARCH ENGINE v2.0.77 >", 
+                                   fg=self.text_secondary, bg=self.dark_bg, 
+                                   font=("Orbitron, Courier", 8))
+        self.footer_text.pack()
+        
+        # 调试按钮
+        self.debug_button = tk.Button(self.footer_frame, text="DEBUG", 
+                                     command=self.toggle_debug, 
+                                     bg="#15151e", fg=self.primary_color, 
+                                     font=("Orbitron, Courier", 8), 
+                                     relief=tk.FLAT, bd=2)
+        self.debug_button.pack(side=tk.RIGHT, padx=10)
+        
+        # 计算器按钮
+        self.calc_button = tk.Button(self.footer_frame, text="CALC", 
+                                    command=self.toggle_calculator, 
+                                    bg="#15151e", fg=self.secondary_color, 
+                                    font=("Orbitron, Courier", 8), 
+                                    relief=tk.FLAT, bd=2)
+        self.calc_button.pack(side=tk.RIGHT, padx=5)
+        
+        # 调试面板
+        self.debug_frame = tk.Frame(self.root, bg="#15151e", width=200, height=150)
+        self.debug_info = tk.Label(self.debug_frame, text="DEBUG INFO", 
+                                  fg=self.primary_color, bg="#15151e", 
+                                  font=("Courier", 9), justify=tk.LEFT)
+        self.debug_info.pack(padx=5, pady=5)
+        
+        # 计算器
+        self.calculator_frame = tk.Frame(self.root, bg="#15151e", width=250, height=300)
+        
+        self.calc_display = tk.Label(self.calculator_frame, text="0", 
+                                    fg=self.primary_color, bg="#0a0a1f", 
+                                    font=("Orbitron, Courier", 16), 
+                                    anchor=tk.E, padx=10)
+        self.calc_display.pack(fill=tk.X, padx=5, pady=5)
+        
+        self.calc_expression = tk.Label(self.calculator_frame, text="", 
+                                       fg=self.text_secondary, bg="#0a0a1f", 
+                                       font=("Orbitron, Courier", 10), 
+                                       anchor=tk.E, padx=10)
+        self.calc_expression.pack(fill=tk.X, padx=5)
+        
+        # 计算器按钮
+        calc_buttons_frame = tk.Frame(self.calculator_frame, bg="#15151e")
+        calc_buttons_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # 创建计算器按钮
+        self.calc_buttons = {}
+        button_layout = [
+            ('C', 0, 0), ('÷', 0, 1), ('×', 0, 2), ('←', 0, 3),
+            ('7', 1, 0), ('8', 1, 1), ('9', 1, 2), ('-', 1, 3),
+            ('4', 2, 0), ('5', 2, 1), ('6', 2, 2), ('+', 2, 3),
+            ('1', 3, 0), ('2', 3, 1), ('3', 3, 2), ('%', 3, 3),
+            ('0', 4, 0, 2), ('.', 4, 2), ('=', 4, 3)
+        ]
+        
+        for button_info in button_layout:
+            text = button_info[0]
+            row = button_info[1]
+            col = button_info[2]
+            colspan = button_info[3] if len(button_info) > 3 else 1
             
-            // Combine reports, local reports will appear first
-            allReports = [...localReports, ...sheetReports];
-            filteredReports = [...allReports];
-            renderTable();
-        }
-
-        // Render table
-        function renderTable() {
-            const tableBody = document.getElementById('reportTableBody');
-            if (filteredReports.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>Tidak ada data laporan.</p></td></tr>`;
-                return;
-            }
-
-            tableBody.innerHTML = filteredReports.map((report, index) => {
-                const isFromSheet = report.source === 'sheet';
-                return `
-                    <tr>
-                        <td>${report.shift || ''}</td>
-                        <td>${report.perihal || ''}</td>
-                        <td>${report.laporan || ''}</td>
-                        <td>${report.kendala || ''}</td>
-                        <td>${report.tanggal_kejadian || report.tanggal || ''}</td>
-                        <td>${report.info_selanjutnya || report.info || ''}</td>
-                        <td>${report.nama || ''}</td>
-                        <td class="action-buttons">
-                            ${isFromSheet ? 
-                                `<button class="edit-btn" disabled title="Data dari Google Sheet tidak dapat diedit."><i class="fas fa-edit"></i> Edit</button>
-                                 <button class="delete-btn" disabled title="Data dari Google Sheet tidak dapat dihapus."><i class="fas fa-trash"></i> Hapus</button>` :
-                                `<button class="edit-btn" onclick="handleEdit(${index})"><i class="fas fa-edit"></i> Edit</button>
-                                 <button class="delete-btn" onclick="handleDelete(${index})"><i class="fas fa-trash"></i> Hapus</button>`
-                            }
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // Handle form submission for Add/Update
-        document.getElementById('reportForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const editIndex = parseInt(document.getElementById('editIndex').value);
-            const formData = {
-                shift: document.getElementById('shift').value,
-                perihal: document.getElementById('perihal').value,
-                laporan: document.getElementById('laporan').value,
-                kendala: document.getElementById('kendala').value,
-                tanggal: document.getElementById('tanggal').value,
-                info: document.getElementById('info').value,
-                nama: document.getElementById('nama').value,
-                source: 'local' // Mark as local
-            };
-
-            const localReports = loadLocalReports();
-
-            if (editIndex === -1) { // Add new
-                localReports.push(formData);
-                showNotification('Laporan berhasil disimpan di browser Anda', 'success');
-            } else { // Update existing
-                // Find the actual index in the localReports array
-                const reportToUpdate = allReports[editIndex];
-                const actualLocalIndex = localReports.findIndex(r => JSON.stringify(r) === JSON.stringify(reportToUpdate));
-                if(actualLocalIndex !== -1){
-                    localReports[actualLocalIndex] = formData;
-                    showNotification('Laporan berhasil diperbarui', 'success');
-                }
-            }
-
-            saveLocalReports(localReports);
-            loadAndMergeReports(); // Reload and re-render
-            resetForm();
-        });
-
-        // Handle Edit button click
-        function handleEdit(index) {
-            const report = allReports[index];
-            if (report.source === 'sheet') {
-                showNotification('Data dari Google Sheet tidak dapat diedit.', 'warning');
-                return;
-            }
-
-            document.getElementById('editIndex').value = index;
-            document.getElementById('shift').value = report.shift;
-            document.getElementById('perihal').value = report.perihal;
-            document.getElementById('laporan').value = report.laporan;
-            document.getElementById('kendala').value = report.kendala;
-            document.getElementById('tanggal').value = report.tanggal;
-            document.getElementById('info').value = report.info;
-            document.getElementById('nama').value = report.nama;
-
-            document.getElementById('formTitle').textContent = 'Edit Laporan';
-            document.getElementById('submitBtn').textContent = 'Update Laporan';
-            document.getElementById('cancelBtn').style.display = 'inline-block';
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Handle Delete button click
-        function handleDelete(index) {
-            const report = allReports[index];
-            if (report.source === 'sheet') {
-                showNotification('Data dari Google Sheet tidak dapat dihapus.', 'warning');
-                return;
-            }
-
-            if (confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
-                const localReports = loadLocalReports();
-                // Find the actual index in the localReports array
-                const actualLocalIndex = localReports.findIndex(r => JSON.stringify(r) === JSON.stringify(report));
+            color = "#15151e"
+            if text in ['÷', '×', '-', '+', '%']:
+                color = "#2a002a"
+            elif text == 'C':
+                color = "#2a0000"
+            elif text == '=':
+                color = "#002a00"
                 
-                if(actualLocalIndex !== -1){
-                    localReports.splice(actualLocalIndex, 1);
-                    saveLocalReports(localReports);
-                    showNotification('Laporan berhasil dihapus', 'success');
-                    loadAndMergeReports(); // Reload and re-render
-                }
-            }
+            btn = tk.Button(calc_buttons_frame, text=text, 
+                          bg=color, fg=self.text_primary, 
+                          font=("Orbitron, Courier", 12), 
+                          command=lambda t=text: self.calc_button_click(t))
+            btn.grid(row=row, column=col, columnspan=colspan, sticky="nsew", padx=1, pady=1)
+            
+            # 配置网格权重
+            for i in range(4):
+                calc_buttons_frame.grid_columnconfigure(i, weight=1)
+            for i in range(5):
+                calc_buttons_frame.grid_rowconfigure(i, weight=1)
+    
+    def clear_placeholder(self, event):
+        if self.filter_input.get() == "FILTER MENU (FLEXIBLE)...":
+            self.filter_input.delete(0, tk.END)
+    
+    def restore_placeholder(self, event):
+        if not self.filter_input.get():
+            self.filter_input.insert(0, "FILTER MENU (FLEXIBLE)...")
+    
+    def debounce_filter(self, event):
+        self.root.after(300, self.filter_menu_items)
+    
+    def update_system_time(self):
+        now = datetime.now()
+        time_string = now.strftime("%H:%M:%S")
+        self.system_time.config(text=time_string)
+        self.root.after(1000, self.update_system_time)
+    
+    def update_system_status(self, status, status_type="normal"):
+        color = self.primary_color
+        if status_type == "error":
+            color = "#ff4444"
+        elif status_type == "success":
+            color = self.accent_color
+        elif status_type == "warning":
+            color = "#ffaa00"
+            
+        self.system_status.config(text=status, fg=color)
+    
+    def add_terminal_line(self, text, line_type="normal"):
+        prefix = "SYSTEM>"
+        color = self.accent_color
+        
+        if line_type == "error":
+            color = "#ff4444"
+        elif line_type == "success":
+            color = self.accent_color
+        elif line_type == "warning":
+            color = "#ffaa00"
+            
+        self.terminal.config(state=tk.NORMAL)
+        self.terminal.insert(tk.END, f"{prefix} {text}\n", color)
+        self.terminal.config(state=tk.DISABLED)
+        self.terminal.see(tk.END)
+    
+    def toggle_debug(self):
+        self.debug_mode = not self.debug_mode
+        if self.debug_mode:
+            self.debug_frame.place(x=self.root.winfo_width() - 210, y=60)
+            self.update_debug_info()
+        else:
+            self.debug_frame.place_forget()
+    
+    def toggle_calculator(self):
+        if self.calculator_frame.winfo_ismapped():
+            self.calculator_frame.place_forget()
+        else:
+            self.calculator_frame.place(x=self.root.winfo_width() - 260, y=60)
+    
+    def update_debug_info(self):
+        if not self.debug_mode:
+            return
+            
+        debug_text = f"Total Data: {len(self.sheet_data)}\n"
+        debug_text += f"Filtered Data: {len(self.filtered_data)}\n"
+        debug_text += f"Current Detail: {self.current_detail.title if self.current_detail else 'None'}\n"
+        
+        self.debug_info.config(text=debug_text)
+    
+    def levenshtein_distance(self, str1, str2):
+        matrix = []
+        
+        for i in range(len(str2) + 1):
+            matrix.append([i])
+        
+        for j in range(len(str1) + 1):
+            matrix[0].append(j)
+        
+        for i in range(1, len(str2) + 1):
+            for j in range(1, len(str1) + 1):
+                if str2[i-1] == str1[j-1]:
+                    matrix[i].append(matrix[i-1][j-1])
+                else:
+                    matrix[i].append(min(
+                        matrix[i-1][j-1] + 1,
+                        matrix[i][j-1] + 1,
+                        matrix[i-1][j] + 1
+                    ))
+        
+        return matrix[len(str2)][len(str1)]
+    
+    def calculate_similarity(self, str1, str2):
+        distance = self.levenshtein_distance(str1.lower(), str2.lower())
+        longer = str1 if len(str1) > len(str2) else str2
+        shorter = str2 if len(str1) > len(str2) else str1
+        
+        if len(longer) == 0:
+            return 100
+            
+        return int(((len(longer) - distance) / len(longer)) * 100)
+    
+    def fuzzy_match(self, query, text):
+        query_lower = query.lower()
+        text_lower = text.lower()
+        
+        # 直接匹配（最高优先级）
+        if query_lower in text_lower:
+            return {"match": True, "score": 100, "type": "exact"}
+        
+        # 将文本分割为单词
+        words = text_lower.split()
+        
+        # 检查每个单词的模糊匹配
+        best_match = {"match": False, "score": 0, "type": "none"}
+        
+        for word in words:
+            # 检查单词是否以查询开头
+            if word.startswith(query_lower):
+                score = int((len(query_lower) / len(word)) * 100)
+                if score > best_match["score"]:
+                    best_match = {"match": True, "score": score, "type": "prefix"}
+            
+            # 检查模糊相似度
+            similarity = self.calculate_similarity(query_lower, word)
+            if similarity >= 60 and similarity > best_match["score"]:  # 60%相似度阈值
+                best_match = {"match": True, "score": similarity, "type": "fuzzy"}
+            
+            # 检查查询是否包含在单词中
+            if query_lower in word:
+                score = int((len(query_lower) / len(word)) * 90)
+                if score > best_match["score"]:
+                    best_match = {"match": True, "score": score, "type": "contains"}
+        
+        return best_match
+    
+    def fetch_sheet_data(self):
+        def fetch():
+            sheet_id = '1k5U_YwloyQsad7PT_DmXobkNycJ6bsV0zhE00TLmSIg'
+            
+            self.update_system_status("MENGAMBIL DATA...", "warning")
+            self.add_terminal_line("Attempting to connect to database...", "warning")
+            
+            # 方法1：尝试通过gid=0访问第一个工作表
+            try:
+                self.add_terminal_line("Method 1: Accessing sheet by gid=0...", "normal")
+                url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:json&gid=0"
+                
+                response = requests.get(url)
+                if response.status_code != 200:
+                    raise Exception(f"HTTP error! status: {response.status_code}")
+                
+                text = response.text
+                
+                # 检查是否获得有效数据
+                if "google.visualization.Query.setResponse" in text:
+                    json_data = json.loads(text[47:-2])
+                    rows = json_data["table"]["rows"]
+                    
+                    self.sheet_data = []
+                    for i in range(len(rows)):
+                        title_cell = rows[i]["c"][0] if len(rows[i]["c"]) > 0 else None
+                        info_cell = rows[i]["c"][1] if len(rows[i]["c"]) > 1 else None
+                        
+                        title = title_cell["v"] if title_cell and "v" in title_cell else ""
+                        info = info_cell["v"] if info_cell and "v" in info_cell else ""
+                        
+                        if title:
+                            self.sheet_data.append({"title": title.strip(), "info": info.strip()})
+                    
+                    if len(self.sheet_data) > 0:
+                        self.add_terminal_line(f"SUCCESS: Loaded {len(self.sheet_data)} menu items from database", "success")
+                        self.update_system_status("SISTEM ONLINE", "success")
+                        self.filtered_data = self.sheet_data.copy()
+                        self.display_menu_items()
+                        self.update_debug_info()
+                        return
+            except Exception as e:
+                self.add_terminal_line(f"Method 1 failed: {str(e)}", "error")
+                print(f"Method 1 error: {e}")
+            
+            # 方法2：尝试通过工作表名称"REPORTAN"访问
+            try:
+                self.add_terminal_line("Method 2: Accessing sheet by name \"REPORTAN\"...", "normal")
+                url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:json&sheet=REPORTAN"
+                
+                response = requests.get(url)
+                if response.status_code != 200:
+                    raise Exception(f"HTTP error! status: {response.status_code}")
+                
+                text = response.text
+                
+                # 检查是否获得有效数据
+                if "google.visualization.Query.setResponse" in text:
+                    json_data = json.loads(text[47:-2])
+                    rows = json_data["table"]["rows"]
+                    
+                    self.sheet_data = []
+                    for i in range(len(rows)):
+                        title_cell = rows[i]["c"][0] if len(rows[i]["c"]) > 0 else None
+                        info_cell = rows[i]["c"][1] if len(rows[i]["c"]) > 1 else None
+                        
+                        title = title_cell["v"] if title_cell and "v" in title_cell else ""
+                        info = info_cell["v"] if info_cell and "v" in info_cell else ""
+                        
+                        if title:
+                            self.sheet_data.append({"title": title.strip(), "info": info.strip()})
+                    
+                    if len(self.sheet_data) > 0:
+                        self.add_terminal_line(f"SUCCESS: Loaded {len(self.sheet_data)} menu items from REPORTAN sheet", "success")
+                        self.update_system_status("SISTEM ONLINE", "success")
+                        self.filtered_data = self.sheet_data.copy()
+                        self.display_menu_items()
+                        self.update_debug_info()
+                        return
+            except Exception as e:
+                self.add_terminal_line(f"Method 2 failed: {str(e)}", "error")
+                print(f"Method 2 error: {e}")
+            
+            # 方法3：尝试获取所有工作表并访问第一个
+            try:
+                self.add_terminal_line("Method 3: Getting all sheets...", "normal")
+                feed_url = f"https://spreadsheets.google.com/feeds/worksheets/{sheet_id}/public/basic?alt=json"
+                
+                response = requests.get(feed_url)
+                if response.status_code != 200:
+                    raise Exception(f"HTTP error! status: {response.status_code}")
+                
+                feed_json = response.json()
+                if "feed" in feed_json and "entry" in feed_json["feed"] and len(feed_json["feed"]["entry"]) > 0:
+                    # 获取第一个工作表
+                    first_sheet = feed_json["feed"]["entry"][0]
+                    sheet_name = first_sheet["title"]["$t"]
+                    
+                    self.add_terminal_line(f"Found sheet: {sheet_name}", "normal")
+                    
+                    # 现在尝试访问此工作表
+                    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:json&sheet={quote(sheet_name)}"
+                    
+                    sheet_response = requests.get(url)
+                    if sheet_response.status_code != 200:
+                        raise Exception(f"HTTP error! status: {sheet_response.status_code}")
+                    
+                    sheet_text = sheet_response.text
+                    
+                    # 检查是否获得有效数据
+                    if "google.visualization.Query.setResponse" in sheet_text:
+                        json_data = json.loads(sheet_text[47:-2])
+                        rows = json_data["table"]["rows"]
+                        
+                        self.sheet_data = []
+                        for i in range(len(rows)):
+                            title_cell = rows[i]["c"][0] if len(rows[i]["c"]) > 0 else None
+                            info_cell = rows[i]["c"][1] if len(rows[i]["c"]) > 1 else None
+                            
+                            title = title_cell["v"] if title_cell and "v" in title_cell else ""
+                            info = info_cell["v"] if info_cell and "v" in info_cell else ""
+                            
+                            if title:
+                                self.sheet_data.append({"title": title.strip(), "info": info.strip()})
+                        
+                        if len(self.sheet_data) > 0:
+                            self.add_terminal_line(f"SUCCESS: Loaded {len(self.sheet_data)} menu items from {sheet_name} sheet", "success")
+                            self.update_system_status("SISTEM ONLINE", "success")
+                            self.filtered_data = self.sheet_data.copy()
+                            self.display_menu_items()
+                            self.update_debug_info()
+                            return
+            except Exception as e:
+                self.add_terminal_line(f"Method 3 failed: {str(e)}", "error")
+                print(f"Method 3 error: {e}")
+            
+            # 方法4：使用示例数据作为最后手段
+            self.add_terminal_line("Method 4: Using sample data...", "warning")
+            self.sheet_data = [
+                {"title": "MENU SAMPLE 1", "info": "Ini adalah contoh menu karena database tidak dapat dijangkau. Silakan periksa koneksi internet Anda atau URL spreadsheet."},
+                {"title": "MENU SAMPLE 2", "info": "Sistem saat ini berjalan dalam mode offline dengan fungsionalitas terbatas."},
+                {"title": "KESALAHAN KONEKSI", "info": "Tidak dapat terhubung ke database Google Sheets. Silakan verifikasi ID spreadsheet dan pastikan dapat diakses publik."}
+            ]
+            
+            self.add_terminal_line(f"WARNING: Using {len(self.sheet_data)} sample menu items", "warning")
+            self.update_system_status("SISTEM OFFLINE", "error")
+            self.filtered_data = self.sheet_data.copy()
+            self.display_menu_items()
+            self.update_debug_info()
+        
+        # 在新线程中运行获取操作
+        thread = threading.Thread(target=fetch)
+        thread.daemon = True
+        thread.start()
+    
+    def display_menu_items(self):
+        # 隐藏加载指示器
+        self.loading_frame.pack_forget()
+        
+        # 如果没有菜单项
+        if len(self.filtered_data) == 0:
+            self.menu_container.pack_forget()
+            self.no_menu_frame.pack(fill=tk.BOTH, expand=True)
+            
+            # 清空并重新填充无菜单提示
+            for widget in self.no_menu_frame.winfo_children():
+                widget.destroy()
+                
+            no_menu_title = tk.Label(self.no_menu_frame, text="TIDAK ADA MENU YANG TERSEDIA", 
+                                    fg=self.text_secondary, bg=self.dark_bg, 
+                                    font=("Orbitron, Courier", 14))
+            no_menu_title.pack(pady=20)
+            
+            no_menu_subtitle = tk.Label(self.no_menu_frame, text="PERIKSA KONEKSI ANDA ATAU COBA LAGI NANTI", 
+                                       fg=self.text_secondary, bg=self.dark_bg, 
+                                       font=("Orbitron, Courier", 10))
+            no_menu_subtitle.pack()
+            return
+        
+        # 显示菜单容器
+        self.no_menu_frame.pack_forget()
+        self.menu_container.pack(fill=tk.BOTH, expand=True)
+        
+        # 清空并重新填充菜单容器
+        for widget in self.menu_container.winfo_children():
+            widget.destroy()
+        
+        # 创建菜单卡片
+        for i, item in enumerate(self.filtered_data):
+            card_frame = tk.Frame(self.menu_container, bg=self.card_bg, relief=tk.RAISED, bd=1)
+            card_frame.pack(fill=tk.X, padx=10, pady=5)
+            
+            # 卡片标题
+            title_frame = tk.Frame(card_frame, bg=self.card_bg)
+            title_frame.pack(fill=tk.X, padx=10, pady=5)
+            
+            title_label = tk.Label(title_frame, text=item["title"], 
+                                 fg=self.primary_color, bg=self.card_bg, 
+                                 font=("Orbitron, Courier", 12, "bold"), 
+                                 anchor=tk.W)
+            title_label.pack(side=tk.LEFT)
+            
+            # 匹配类型标签
+            if "matchType" in item:
+                match_label = tk.Label(title_frame, text=item["matchType"], 
+                                     fg=self.accent_color, bg=self.card_bg, 
+                                     font=("Orbitron, Courier", 8))
+                match_label.pack(side=tk.RIGHT)
+            
+            # 卡片内容
+            content_frame = tk.Frame(card_frame, bg=self.card_bg)
+            content_frame.pack(fill=tk.X, padx=10, pady=5)
+            
+            content_label = tk.Label(content_frame, text=item["info"][:100] + "..." if len(item["info"]) > 100 else item["info"], 
+                                   fg=self.text_primary, bg=self.card_bg, 
+                                   font=("Orbitron, Courier", 10), 
+                                   anchor=tk.W, justify=tk.LEFT)
+            content_label.pack(fill=tk.X)
+            
+            # 菜单标签
+            badge_label = tk.Label(card_frame, text=f"MENU #{i+1}", 
+                                 fg=self.primary_color, bg=self.card_bg, 
+                                 font=("Orbitron, Courier", 8))
+            badge_label.pack(anchor=tk.W, padx=10, pady=5)
+            
+            # 绑定点击事件
+            card_frame.bind("<Button-1>", lambda e, idx=i: self.show_detail(idx))
+            title_label.bind("<Button-1>", lambda e, idx=i: self.show_detail(idx))
+            content_label.bind("<Button-1>", lambda e, idx=i: self.show_detail(idx))
+            badge_label.bind("<Button-1>", lambda e, idx=i: self.show_detail(idx))
+    
+    def show_detail(self, index):
+        item = self.filtered_data[index]
+        self.current_detail = item
+        
+        # 创建详情窗口
+        detail_window = tk.Toplevel(self.root)
+        detail_window.title(item["title"])
+        detail_window.geometry("600x400")
+        detail_window.configure(bg=self.card_bg)
+        
+        # 详情标题
+        title_frame = tk.Frame(detail_window, bg=self.card_bg)
+        title_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        title_label = tk.Label(title_frame, text=item["title"], 
+                             fg=self.primary_color, bg=self.card_bg, 
+                             font=("Orbitron, Courier", 14, "bold"))
+        title_label.pack()
+        
+        # 详情内容
+        content_frame = tk.Frame(detail_window, bg=self.card_bg)
+        content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        content_text = scrolledtext.ScrolledText(content_frame, bg=self.dark_bg, fg=self.text_primary, 
+                                               font=("Orbitron, Courier", 10), 
+                                               wrap=tk.WORD)
+        content_text.pack(fill=tk.BOTH, expand=True)
+        content_text.insert(tk.END, item["info"])
+        content_text.config(state=tk.DISABLED)
+        
+        # 操作按钮
+        actions_frame = tk.Frame(detail_window, bg=self.card_bg)
+        actions_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        copy_button = tk.Button(actions_frame, text="SALIN", 
+                              command=lambda: self.copy_to_clipboard(item["info"], detail_window), 
+                              bg=self.primary_color, fg=self.dark_bg, 
+                              font=("Orbitron, Courier", 10, "bold"))
+        copy_button.pack(side=tk.RIGHT, padx=5)
+        
+        # 添加到终端
+        self.add_terminal_line(f"Opening menu: {item['title']}")
+        self.update_debug_info()
+    
+    def copy_to_clipboard(self, text, window):
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        
+        # 显示成功消息
+        messagebox.showinfo("Berhasil", "Tersalin!")
+        
+        # 添加到终端
+        self.add_terminal_line(f"Data copied to clipboard: {text[:50]}{'...' if len(text) > 50 else ''}", "success")
+        
+        # 关闭窗口
+        window.destroy()
+    
+    def filter_menu_items(self):
+        query = self.filter_input.get().strip()
+        
+        if query == "" or query == "FILTER MENU (FLEXIBLE)...":
+            self.filtered_data = self.sheet_data.copy()
+        else:
+            results = []
+            
+            for item in self.sheet_data:
+                # 检查标题匹配
+                title_match = self.fuzzy_match(query, item["title"])
+                
+                # 检查信息匹配
+                info_match = self.fuzzy_match(query, item["info"])
+                
+                # 使用最佳匹配
+                best_match = title_match if title_match["score"] > info_match["score"] else info_match
+                
+                if best_match["match"]:
+                    # 添加匹配类型和分数到项目
+                    enhanced_item = {
+                        **item,
+                        "matchScore": best_match["score"],
+                        "matchType": best_match["type"].upper()
+                    }
+                    results.append(enhanced_item)
+            
+            # 按分数排序（最高优先）
+            results.sort(key=lambda x: x["matchScore"], reverse=True)
+            
+            self.filtered_data = results
+        
+        self.display_menu_items()
+        self.update_debug_info()
+        
+        self.add_terminal_line(f"Fuzzy filter applied: \"{query}\" ({len(self.filtered_data)} results)")
+    
+    # 计算器功能
+    def calc_button_click(self, button_text):
+        if button_text.isdigit():
+            self.input_digit(button_text)
+        elif button_text == '.':
+            self.input_decimal()
+        elif button_text == 'C':
+            self.clear_calculator()
+        elif button_text in ['÷', '×', '-', '+', '%']:
+            self.perform_operation(button_text)
+        elif button_text == '=':
+            self.handle_equals()
+        elif button_text == '←':
+            self.handle_backspace()
+    
+    def update_calculator_display(self):
+        self.calc_display.config(text=self.calculator_state['display_value'])
+        self.calc_expression.config(text=self.calculator_state['expression'])
+    
+    def input_digit(self, digit):
+        display_value = self.calculator_state['display_value']
+        waiting_for_operand = self.calculator_state['waiting_for_operand']
+        
+        if waiting_for_operand:
+            self.calculator_state['display_value'] = digit
+            self.calculator_state['waiting_for_operand'] = False
+        else:
+            self.calculator_state['display_value'] = digit if display_value == '0' else display_value + digit
+        
+        self.update_calculator_display()
+    
+    def input_decimal(self):
+        display_value = self.calculator_state['display_value']
+        waiting_for_operand = self.calculator_state['waiting_for_operand']
+        
+        if waiting_for_operand:
+            self.calculator_state['display_value'] = '0.'
+            self.calculator_state['waiting_for_operand'] = False
+        elif '.' not in display_value:
+            self.calculator_state['display_value'] = display_value + '.'
+        
+        self.update_calculator_display()
+    
+    def clear_calculator(self):
+        self.calculator_state = {
+            'display_value': '0',
+            'expression': '',
+            'previous_value': None,
+            'operation': None,
+            'waiting_for_operand': False
         }
+        
+        self.update_calculator_display()
+    
+    def perform_operation(self, next_operation):
+        display_value = self.calculator_state['display_value']
+        previous_value = self.calculator_state['previous_value']
+        operation = self.calculator_state['operation']
+        
+        input_value = float(display_value)
+        
+        if previous_value is None:
+            self.calculator_state['previous_value'] = input_value
+        elif operation:
+            current_value = previous_value or 0
+            new_value = self.calculate(current_value, input_value, operation)
+            
+            self.calculator_state['display_value'] = str(new_value)
+            self.calculator_state['previous_value'] = new_value
+            self.calculator_state['expression'] = f"{current_value} {self.get_operator_symbol(operation)} {input_value} ="
+        
+        self.calculator_state['waiting_for_operand'] = True
+        self.calculator_state['operation'] = next_operation
+        
+        if next_operation:
+            self.calculator_state['expression'] = f"{display_value} {self.get_operator_symbol(next_operation)}"
+        
+        self.update_calculator_display()
+    
+    def calculate(self, first_value, second_value, operation):
+        if operation == '+':
+            return first_value + second_value
+        elif operation == '-':
+            return first_value - second_value
+        elif operation == '×':
+            return first_value * second_value
+        elif operation == '÷':
+            return first_value / second_value if second_value != 0 else 0
+        elif operation == '%':
+            return first_value % second_value
+        else:
+            return second_value
+    
+    def get_operator_symbol(self, operation):
+        if operation == '+':
+            return '+'
+        elif operation == '-':
+            return '-'
+        elif operation == '×':
+            return '×'
+        elif operation == '÷':
+            return '÷'
+        elif operation == '%':
+            return '%'
+        else:
+            return ''
+    
+    def handle_equals(self):
+        display_value = self.calculator_state['display_value']
+        previous_value = self.calculator_state['previous_value']
+        operation = self.calculator_state['operation']
+        
+        input_value = float(display_value)
+        
+        if previous_value is not None and operation:
+            new_value = self.calculate(previous_value, input_value, operation)
+            
+            self.calculator_state['display_value'] = str(new_value)
+            self.calculator_state['expression'] = f"{previous_value} {self.get_operator_symbol(operation)} {input_value} ="
+            self.calculator_state['previous_value'] = None
+            self.calculator_state['operation'] = None
+            self.calculator_state['waiting_for_operand'] = True
+        
+        self.update_calculator_display()
+    
+    def handle_backspace(self):
+        display_value = self.calculator_state['display_value']
+        
+        if len(display_value) > 1:
+            self.calculator_state['display_value'] = display_value[:-1]
+        else:
+            self.calculator_state['display_value'] = '0'
+        
+        self.update_calculator_display()
 
-        // Handle Cancel button click
-        document.getElementById('cancelBtn').addEventListener('click', resetForm);
-
-        function resetForm() {
-            document.getElementById('reportForm').reset();
-            document.getElementById('editIndex').value = "-1";
-            document.getElementById('formTitle').textContent = 'Input Laporan Baru';
-            document.getElementById('submitBtn').textContent = 'Simpan Laporan';
-            document.getElementById('cancelBtn').style.display = 'none';
-            document.getElementById('tanggal').valueAsDate = new Date();
-        }
-
-        // Handle search
-        document.getElementById('searchBtn').addEventListener('click', function() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            if (!searchTerm) {
-                filteredReports = [...allReports];
-            } else {
-                filteredReports = allReports.filter(report => 
-                    (report.nama && report.nama.toLowerCase().includes(searchTerm)) ||
-                    (report.perihal && report.perihal.toLowerCase().includes(searchTerm)) ||
-                    (report.laporan && report.laporan.toLowerCase().includes(searchTerm)) ||
-                    (report.kendala && report.kendala.toLowerCase().includes(searchTerm)) ||
-                    (report.info && report.info.toLowerCase().includes(searchTerm))
-                );
-            }
-            renderTable();
-        });
-
-        // Handle search input
-        document.getElementById('searchInput').addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('searchBtn').click();
-            }
-        });
-
-        // Handle refresh button
-        document.getElementById('refreshBtn').addEventListener('click', function() {
-            this.style.animation = 'spin 1s';
-            loadAndMergeReports();
-            setTimeout(() => this.style.animation = '', 1000);
-        });
-
-        // Add spin animation
-        const style = document.createElement('style');
-        style.textContent = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
-        document.head.appendChild(style);
-
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', function() {
-            resetForm();
-            loadAndMergeReports();
-        });
-    </script>
-</body>
-</html>
+# 创建并运行应用
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CyberSearchApp(root)
+    root.mainloop()
