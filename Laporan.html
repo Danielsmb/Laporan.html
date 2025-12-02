@@ -31,7 +31,6 @@
         <!-- Header -->
         <header class="header">
             <div class="logo-container">
-                <div class="hexagon-bg"></div>
                 <div class="icon">
                     <svg class="icon-cpu" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm7 0h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
@@ -46,111 +45,130 @@
                     <div class="icon-glow globe-glow"></div>
                 </div>
             </div>
-            <p class="subtitle neon-flicker">// SISTEM MENU DIGITAL //</p>
+            <p class="subtitle neon-flicker">// SISTEM MENU DIGITAL - SIDEBAR EDITION //</p>
         </header>
 
-        <!-- Menu Filter -->
-        <div class="menu-filter">
-            <div class="filter-container">
-                <input
-                    type="text"
-                    class="filter-input"
-                    id="filterInput"
-                    placeholder="FILTER MENU (FLEXIBLE)..."
-                    autocomplete="off"
-                >
-                <span class="filter-hint">Filter cerdas dengan toleransi kesalahan ketik</span>
-            </div>
-        </div>
-
-        <!-- Loading Container -->
-        <div class="loading-container" id="loadingContainer">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">MENGAMBIL DATA...</div>
-        </div>
-
-        <!-- Menu Container -->
-        <div class="menu-container" id="menuContainer" style="display: none;"></div>
-
-        <!-- No Menu Items -->
-        <div class="no-menu" id="noMenu" style="display: none;">
-            <div class="no-menu-title">TIDAK ADA MENU YANG TERSEDIA</div>
-            <div class="no-menu-subtitle">PERIKSA KONEKSI ANDA ATAU COBA LAGI NANTI</div>
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3>MODULES</h3>
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Categories -->
+                <div class="categories">
+                    <div class="categories-container" id="categoriesContainer">
+                        <!-- Categories will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Filter -->
+                <div class="filter-container">
+                    <input
+                        type="text"
+                        class="filter-input"
+                        id="filterInput"
+                        placeholder="SEARCH MODULES..."
+                        autocomplete="off"
+                    >
+                    <span class="filter-hint">Fuzzy search with typo tolerance</span>
+                </div>
+                
+                <!-- Menu Items -->
+                <div class="sidebar-menu-container" id="sidebarMenuContainer">
+                    <!-- Menu items will be populated by JavaScript -->
+                </div>
+            </aside>
+            
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Loading Container -->
+                <div class="loading-container" id="loadingContainer">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">LOADING CYBER MODULES...</div>
+                </div>
+                
+                <!-- Detail Content -->
+                <div class="detail-content" id="detailContent">
+                    <div class="detail-placeholder">
+                        <div class="detail-header">
+                            <div class="detail-category-badge system">
+                                💻 SYSTEM
+                            </div>
+                            <div class="detail-status">
+                                <span class="status-dot active"></span> STATUS: ONLINE
+                            </div>
+                        </div>
+                        
+                        <h1 class="detail-main-title">CYBERSEARCH CONTROL PANEL</h1>
+                        
+                        <div class="detail-stats">
+                            <div class="stat">
+                                <div class="stat-label">TOTAL MODULES</div>
+                                <div class="stat-value" id="totalModules">0</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">ACTIVE</div>
+                                <div class="stat-value" id="activeModules">0</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">RESPONSE TIME</div>
+                                <div class="stat-value">12ms</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">SECURITY</div>
+                                <div class="stat-value">100%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-info">
+                            <h3 class="detail-section-title">SYSTEM OVERVIEW</h3>
+                            <p class="detail-text">
+                                Welcome to CYBERSEARCH Control Panel v2.0.77. This system provides centralized access to all cybersecurity modules and tools. Select a module from the sidebar to view detailed information and execute operations. All connections are encrypted and monitored in real-time.
+                            </p>
+                        </div>
+                        
+                        <div class="detail-terminal">
+                            <div class="terminal-header">
+                                <span class="terminal-title">SYSTEM MONITOR</span>
+                                <span class="terminal-status">LIVE</span>
+                            </div>
+                            <div class="terminal-content" id="systemTerminal">
+                                <div class="terminal-line"><span class="terminal-prompt">></span> System initialized at <span id="initTime">--:--:--</span></div>
+                                <div class="terminal-line"><span class="terminal-prompt">></span> Security protocols: ACTIVE</div>
+                                <div class="terminal-line"><span class="terminal-prompt">></span> Neural network: CONNECTED</div>
+                                <div class="terminal-line"><span class="terminal-prompt">></span> Database sync: COMPLETE</div>
+                                <div class="terminal-line"><span class="terminal-prompt">></span> Ready for module access...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- No Menu Items -->
+                <div class="no-menu" id="noMenu" style="display: none;">
+                    <div class="no-menu-title">NO MODULES FOUND</div>
+                    <div class="no-menu-subtitle">CHECK CONNECTION OR TRY DIFFERENT SEARCH TERMS</div>
+                </div>
+            </main>
         </div>
 
         <!-- Terminal Output -->
         <div class="terminal-output" id="terminalOutput">
             <div class="terminal-line"><span class="terminal-prompt">SYSTEM></span> Initializing CYBERSEARCH Engine v2.0.77</div>
             <div class="terminal-line"><span class="terminal-prompt">SYSTEM></span> Neural network connection established</div>
-            <div class="terminal-line"><span class="terminal-prompt">SYSTEM></span> Ready for menu access...</div>
+            <div class="terminal-line"><span class="terminal-prompt">SYSTEM></span> Ready for module access...</div>
         </div>
 
         <!-- Footer -->
         <footer class="footer">
-            <p class="footer-text">&lt; CYBERSEARCH ENGINE v2.0.77 &gt;</p>
+            <p class="footer-text">&lt; CYBERSEARCH ENGINE v2.0.77 | SECURITY LEVEL: MAXIMUM &gt;</p>
         </footer>
-    </div>
-
-    <!-- Detail Modal -->
-    <div class="detail-modal" id="detailModal">
-        <div class="detail-content">
-            <div class="detail-header">
-                <h2 class="detail-title" id="detailTitle">MENU TITLE</h2>
-                <button class="detail-close" id="detailClose">
-                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="detail-body">
-                <div class="detail-text" id="detailText">MENU CONTENT</div>
-            </div>
-            <div class="detail-actions">
-                <button class="copy-button" id="copyButton">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
-                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14zm-7-2h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V7h-2v2z"/>
-                    </svg>
-                    SALIN
-                </button>
-                <span id="copySuccess" class="copy-success">Tersalin!</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Calculator Toggle -->
-    <div class="calculator-toggle" id="calculatorToggle">
-        <svg viewBox="0 0 24 24">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V7h-2v2z"/>
-        </svg>
-    </div>
-
-    <!-- Calculator Container -->
-    <div class="calculator-container" id="calculatorContainer">
-        <div class="calculator-display">
-            <div class="calculator-expression" id="calculatorExpression"></div>
-            <div class="calculator-value" id="calculatorValue">0</div>
-        </div>
-        <div class="calculator-buttons">
-            <button class="calculator-btn clear" data-action="clear">C</button>
-            <button class="calculator-btn operator" data-action="operator" data-value="/">÷</button>
-            <button class="calculator-btn operator" data-action="operator" data-value="*">×</button>
-            <button class="calculator-btn operator" data-action="backspace">←</button>
-            <button class="calculator-btn" data-action="number" data-value="7">7</button>
-            <button class="calculator-btn" data-action="number" data-value="8">8</button>
-            <button class="calculator-btn" data-action="number" data-value="9">9</button>
-            <button class="calculator-btn operator" data-action="operator" data-value="-">-</button>
-            <button class="calculator-btn" data-action="number" data-value="4">4</button>
-            <button class="calculator-btn" data-action="number" data-value="5">5</button>
-            <button class="calculator-btn" data-action="number" data-value="6">6</button>
-            <button class="calculator-btn operator" data-action="operator" data-value="+">+</button>
-            <button class="calculator-btn" data-action="number" data-value="1">1</button>
-            <button class="calculator-btn" data-action="number" data-value="2">2</button>
-            <button class="calculator-btn" data-action="number" data-value="3">3</button>
-            <button class="calculator-btn operator" data-action="percent" style="grid-row: span 2;">%</button>
-            <button class="calculator-btn zero" data-action="number" data-value="0">0</button>
-            <button class="calculator-btn" data-action="decimal">.</button>
-            <button class="calculator-btn equals" data-action="equals">=</button>
-        </div>
     </div>
 
     <!-- Debug Toggle -->
